@@ -285,7 +285,7 @@ $(KERNEL_CONFIG): $(KERNEL_OUT_STAMP) $(KERNEL_DEFCONFIG_SRC) $(KERNEL_ADDITIONA
 TARGET_KERNEL_BINARIES: $(KERNEL_OUT_STAMP) $(KERNEL_CONFIG) $(KERNEL_HEADERS_INSTALL_STAMP)
 	@echo -e ${CL_GRN}"Building Kernel"${CL_RST}
 	$(MAKE) $(MAKE_FLAGS) -C $(KERNEL_SRC) O=$(KERNEL_OUT) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) $(TARGET_PREBUILT_INT_KERNEL_TYPE)
-	$(hide) if grep -q 'CONFIG_OF=y' $(KERNEL_CONFIG) ; \
+	$(hide) if grep -q 'CONFIG_OF=y' $(KERNEL_CONFIG) && [ ! $(KERNEL_ARCH) = "x86" ] ; \
 			then \
 				echo -e ${CL_GRN}"Building DTBs"${CL_RST} ; \
 				$(MAKE) $(MAKE_FLAGS) -C $(KERNEL_SRC) O=$(KERNEL_OUT) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) dtbs ; \
@@ -297,8 +297,11 @@ TARGET_KERNEL_BINARIES: $(KERNEL_OUT_STAMP) $(KERNEL_CONFIG) $(KERNEL_HEADERS_IN
 				echo -e ${CL_GRN}"Building Kernel Modules"${CL_RST} ; \
 				$(MAKE) $(MAKE_FLAGS) -C $(KERNEL_SRC) O=$(KERNEL_OUT) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) modules && \
 				$(MAKE) $(MAKE_FLAGS) -C $(KERNEL_SRC) O=$(KERNEL_OUT) INSTALL_MOD_PATH=../../$(KERNEL_MODULES_INSTALL) ARCH=$(KERNEL_ARCH) $(KERNEL_CROSS_COMPILE) modules_install && \
-				$(mv-modules) && \
-				$(clean-module-folder) ; \
+				if [ ! $(KERNEL_ARCH) = "x86" ] ; \
+				then \
+					$(mv-modules) && \
+					$(clean-module-folder) ; \
+				fi ; \
 			else \
 				echo "Kernel Modules not enabled" ; \
 			fi ;
@@ -307,8 +310,10 @@ TARGET_KERNEL_BINARIES: $(KERNEL_OUT_STAMP) $(KERNEL_CONFIG) $(KERNEL_HEADERS_IN
 $(TARGET_KERNEL_MODULES): TARGET_KERNEL_BINARIES
 
 $(TARGET_PREBUILT_INT_KERNEL): $(TARGET_KERNEL_MODULES)
+ifneq ($(KERNEL_ARCH),x86)
 	$(mv-modules)
 	$(clean-module-folder)
+endif
 
 $(KERNEL_HEADERS_INSTALL_STAMP): $(KERNEL_OUT_STAMP) $(KERNEL_CONFIG)
 	@echo -e ${CL_GRN}"Building Kernel Headers"${CL_RST}
