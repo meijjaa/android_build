@@ -695,7 +695,7 @@ endif  # TARGET_BUILD_APPS
 # make the target NOTICE files depend on this particular file too, which will
 # then be in the right directory for the find in combine-notice-files to work.
 $(kernel_notice_file): \
-	    prebuilts/qemu-kernel/arm/LINUX_KERNEL_COPYING \
+	    $(TARGET_KERNEL_SOURCE)/COPYING \
 	    | $(ACP)
 	@echo -e ${CL_CYN}"Copying:"${CL_RST}" $@"
 	$(hide) mkdir -p $(dir $@)
